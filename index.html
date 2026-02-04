@@ -416,8 +416,39 @@
 
         let currentCourseId = null;
 
+        // === LOCAL STORAGE MANAGEMENT ===
+        function saveToLocalStorage() {
+            localStorage.setItem('allCourses', JSON.stringify(allCourses));
+        }
+
+        function loadFromLocalStorage() {
+            const storedCourses = localStorage.getItem('allCourses');
+            if (storedCourses) {
+                allCourses = JSON.parse(storedCourses);
+            }
+        }
+
+        // === THEME MANAGEMENT ===
+        function saveThemeToLocalStorage() {
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        }
+
+        function loadThemeFromLocalStorage() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('theme-toggle').querySelector('i').classList.replace('fa-moon', 'fa-sun');
+            } else {
+                document.body.classList.remove('dark-mode');
+                document.getElementById('theme-toggle').querySelector('i').classList.replace('fa-sun', 'fa-moon');
+            }
+        }
+
         // === INITIALIZATION ===
         function init() {
+            loadThemeFromLocalStorage(); // Load theme on page load
+            loadFromLocalStorage(); // Load courses from localStorage
             renderGrid();
         }
 
@@ -452,7 +483,7 @@
         function openDetail(courseId) {
             currentCourseId = courseId;
             const course = allCourses.find(c => c.id === courseId);
-            if(!course) return;
+            if (!course) return;
 
             // تعبئة الهيدر
             document.getElementById('detail-title').innerText = course.title;
@@ -463,14 +494,14 @@
             const container = document.getElementById('sections-container');
             container.innerHTML = '';
 
-            if(course.sections.length === 0) {
+            if (course.sections.length === 0) {
                 container.innerHTML = '<div style="text-align:center; color:var(--text-secondary); padding:2rem;">لا توجد أقسام أو روابط مضافة. اضغط "إضافة رابط".</div>';
             }
 
             course.sections.forEach((section, sIndex) => {
                 const el = document.createElement('div');
                 el.className = 'chapter-card';
-                
+
                 // توليد قائمة الروابط داخل القسم
                 let listHTML = '';
                 section.links.forEach((link, lIndex) => {
@@ -488,6 +519,10 @@
                     <div class="chapter-header">
                         <span class="chapter-title">${section.name}</span>
                         ${section.badge ? `<span class="doc-badge">${section.badge}</span>` : ''}
+                        <div style="display: flex; gap: 10px;">
+                            <button class="action-btn" onclick="editSectionName('${course.id}', ${sIndex})" title="تعديل اسم الخانة"><i class="fa-solid fa-pen"></i></button>
+                            <button class="action-btn delete" onclick="deleteSection('${course.id}', ${sIndex})" title="حذف الخانة"><i class="fa-solid fa-trash"></i></button>
+                        </div>
                     </div>
                     <ul class="playlist-list">
                         ${listHTML}
@@ -496,6 +531,7 @@
                 container.appendChild(el);
             });
 
+            enableDragAndDrop(); // Enable drag-and-drop functionality
             showView('detail-view');
         }
 
@@ -573,37 +609,34 @@
         }
 
         function saveCourseData() {
-            const title = document.getElementById('course-name').value;
-            const doc = document.getElementById('course-doc').value;
-            if(!title) return alert('يرجى إدخال اسم المقرر');
+            const courseName = document.getElementById('course-name').value.trim();
+            const courseDoc = document.getElementById('course-doc').value.trim();
 
-            const icon = getIcon(title);
+            if (!courseName || !courseDoc) {
+                alert('يرجى ملء جميع الحقول');
+                return;
+            }
 
-            if(currentCourseId) {
-                // Edit Existing
+            if (currentCourseId) {
                 const course = allCourses.find(c => c.id === currentCourseId);
-                course.title = title;
-                course.doc = doc;
-                course.icon = icon;
-                // Refresh detail view if open
-                if(document.getElementById('detail-view').classList.contains('active')) {
-                    document.getElementById('detail-title').innerText = title;
-                    document.getElementById('detail-doc').innerText = doc;
-                    document.getElementById('detail-icon').className = `fa-solid ${icon}`;
+                if (course) {
+                    course.title = courseName;
+                    course.doc = courseDoc;
                 }
             } else {
-                // Create New
                 const newCourse = {
-                    id: 'user_' + Date.now(),
-                    title: title,
-                    doc: doc || 'مقرر خاص',
-                    icon: icon,
-                    sections: [] // Empty sections initially
+                    id: `course-${Date.now()}`,
+                    title: courseName,
+                    doc: courseDoc,
+                    icon: 'fa-book',
+                    sections: []
                 };
                 allCourses.push(newCourse);
             }
-            closeCourseModal();
+
+            saveToLocalStorage();
             renderGrid();
+            closeCourseModal();
         }
 
         function deleteCurrentCourse() {
@@ -618,6 +651,7 @@
             event.stopPropagation();
             if(confirm('هل أنت متأكد من الحذف؟')) {
                 allCourses = allCourses.filter(c => c.id !== id);
+                saveToLocalStorage();
                 renderGrid();
             }
         }
@@ -631,23 +665,24 @@
         function closeLinkModal() { linkModal.style.display = 'none'; }
         
         function saveLinkData() {
-            const name = document.getElementById('link-name').value;
-            const url = document.getElementById('link-url').value;
-            if(!name || !url) return alert('يرجى ملء البيانات');
+            const name = document.getElementById('link-name').value.trim();
+            const url = document.getElementById('link-url').value.trim();
+
+            if (!name || !url) {
+                alert('يرجى ملء البيانات');
+                return;
+            }
 
             const course = allCourses.find(c => c.id === currentCourseId);
-            if(course) {
-                // For simplicity, if sections are empty or user just wants to add a link quickly,
-                // We create a new section holding this link.
-                // Or better: We add the link to the "First" section if available, or create one.
-                // To match the original behavior (Chapter -> Links), let's treat every input as a "Section" with 1 "Link" initially.
-                // Actually, let's create a new Section containing this link.
+            if (course) {
+                // Always create a new section for the new link
                 course.sections.push({
-                    name: name,
+                    name: `قسم جديد ${course.sections.length + 1}`,
                     badge: 'مضاف',
-                    links: [{ name: 'فتح الرابط', url: url }]
+                    links: [{ name, url }]
                 });
-                openDetail(course.id); // Refresh view
+                saveToLocalStorage(); // Save changes to localStorage
+                openDetail(course.id); // Refresh the detail view
             }
             closeLinkModal();
         }
@@ -667,15 +702,76 @@
             }
         }
 
+        // === DELETE SECTION PERMANENTLY ===
+        function deleteSection(courseId, sectionIndex) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (course && course.sections[sectionIndex]) {
+                if (confirm('هل أنت متأكد من حذف هذه الخانة؟')) {
+                    course.sections.splice(sectionIndex, 1);
+                    saveToLocalStorage(); // Save changes to localStorage
+                    openDetail(courseId); // Refresh the detail view
+                }
+            }
+        }
+
+        // === EDIT SECTION NAME ===
+        function editSectionName(courseId, sectionIndex) {
+            const course = allCourses.find(c => c.id === courseId);
+            if (course && course.sections[sectionIndex]) {
+                const newName = prompt('أدخل الاسم الجديد للخانة:', course.sections[sectionIndex].name);
+                if (newName) {
+                    course.sections[sectionIndex].name = newName.trim();
+                    saveToLocalStorage(); // Save changes to localStorage
+                    openDetail(courseId); // Refresh the detail view
+                }
+            }
+        }
+
+        // === DRAG AND DROP FOR REORDERING SECTIONS ===
+        function enableDragAndDrop() {
+            const container = document.getElementById('sections-container');
+            const sections = container.querySelectorAll('.chapter-card');
+
+            sections.forEach((section, index) => {
+                section.draggable = true;
+
+                section.addEventListener('dragstart', (e) => {
+                    e.dataTransfer.setData('text/plain', index);
+                });
+
+                section.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    section.style.border = '2px dashed var(--primary)';
+                });
+
+                section.addEventListener('dragleave', () => {
+                    section.style.border = '';
+                });
+
+                section.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    section.style.border = '';
+
+                    const draggedIndex = e.dataTransfer.getData('text/plain');
+                    const targetIndex = index;
+
+                    if (draggedIndex !== targetIndex) {
+                        const course = allCourses.find(c => c.id === currentCourseId);
+                        if (course) {
+                            const [draggedSection] = course.sections.splice(draggedIndex, 1);
+                            course.sections.splice(targetIndex, 0, draggedSection);
+                            saveToLocalStorage();
+                            openDetail(course.id);
+                        }
+                    }
+                });
+            });
+        }
+
         // Theme Toggle
         document.getElementById('theme-toggle').addEventListener('click', () => {
             document.body.classList.toggle('dark-mode');
-            const i = document.getElementById('theme-toggle').querySelector('i');
-            if(document.body.classList.contains('dark-mode')) {
-                i.classList.replace('fa-moon', 'fa-sun');
-            } else {
-                i.classList.replace('fa-sun', 'fa-moon');
-            }
+            saveThemeToLocalStorage();
         });
 
         // Close modals on click outside

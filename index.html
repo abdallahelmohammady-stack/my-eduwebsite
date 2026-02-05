@@ -95,6 +95,7 @@
         }
         .material-card:hover { transform: translateY(-4px); border-color: var(--primary); }
         
+        /* Icon Container Styling */
         .material-icon {
             width: 60px; height: 60px;
             background: linear-gradient(135deg, var(--bg-body) 0%, #fff 100%);
@@ -102,8 +103,22 @@
             display: flex; align-items: center; justify-content: center;
             font-size:1.8rem; margin: 0 auto 1rem;
             border: 2px solid var(--border-color); transition: 0.3s;
+            overflow: hidden; /* Important for custom images */
+            position: relative;
         }
         .material-card:hover .material-icon { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        /* Custom Image Styling inside Icon */
+        .custom-icon-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        /* When hovering a card with a custom image, keep the image as is or slightly brighten */
+        .material-card:hover .custom-icon-img {
+            opacity: 0.8;
+        }
         
         .material-title { font-size: 1.1rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.3rem; }
         .material-desc { color: var(--text-secondary); font-size: 0.8rem; font-weight: 500; }
@@ -129,7 +144,13 @@
         .back-btn:hover { background: var(--primary); color: white; border-color: var(--primary); }
 
         .detail-header { background: var(--bg-card); padding: 2rem; border-radius: var(--radius); box-shadow: var(--shadow); text-align: center; border: 1px solid var(--border-color); margin-bottom: 2rem; }
-        .detail-icon { width: 80px; height: 80px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--accent); margin: 0 auto 1.5rem; border: 4px solid var(--accent); }
+        .detail-icon { width: 80px; height: 80px; background: var(--bg-body); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2.5rem; color: var(--accent); margin: 0 auto 1.5rem; border: 4px solid var(--accent); overflow: hidden;}
+        
+        /* Detail Custom Image */
+        .detail-custom-img {
+            width: 100%; height: 100%; object-fit: cover;
+        }
+
         .detail-title { font-size: 2rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 0.5rem; }
         .detail-doc { font-size: 1.2rem; color: var(--text-secondary); margin-bottom: 1.5rem; }
         
@@ -177,6 +198,29 @@
         .form-label { display: block; margin-bottom: 0.5rem; font-weight: 600; font-size: 0.9rem; }
         .form-input { width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-body); color: var(--text-primary); font-family: 'Cairo'; transition: 0.2s; }
         .form-input:focus { border-color: var(--primary); outline: none; }
+        
+        /* Icon Upload Specific Styles */
+        .icon-upload-wrapper {
+            display: flex; align-items: center; gap: 12px;
+        }
+        .btn-upload-icon {
+            background: var(--bg-body); color: var(--text-primary);
+            border: 1px dashed var(--border-color); padding: 0.6rem 1rem;
+            border-radius: 8px; cursor: pointer; font-family: 'Cairo';
+            font-weight: 600; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+        }
+        .btn-upload-icon:hover { border-color: var(--primary); color: var(--primary); }
+        
+        #icon-preview {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            overflow: hidden;
+            border: 2px solid var(--border-color);
+            display: none; /* Hidden by default */
+            position: relative;
+        }
+        #icon-preview img { width: 100%; height: 100%; object-fit: cover; }
+        
         .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem; }
         .btn-cancel { background: transparent; border: 1px solid var(--border-color); color: var(--text-secondary); padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; }
         .btn-save { background: var(--primary); color: white; border: none; padding: 0.6rem 1.5rem; border-radius: 8px; cursor: pointer; font-family: 'Cairo'; font-weight: 700; }
@@ -242,7 +286,10 @@
             
             <div class="detail-header">
                 <div class="detail-icon">
-                    <i id="detail-icon" class="fa-solid fa-book"></i>
+                    <div id="detail-icon-container">
+                        <!-- Icon or Image will be injected here -->
+                        <i id="detail-icon" class="fa-solid fa-book"></i>
+                    </div>
                 </div>
                 <h2 id="detail-title" class="detail-title">اسم المقرر</h2>
                 <p id="detail-doc" class="detail-doc">اسم الدكتور</p>
@@ -283,6 +330,22 @@
                 <label class="form-label">اسم الدكتور / الملاحظة</label>
                 <input type="text" id="course-doc" class="form-input" placeholder="مثال: دكتور فلان">
             </div>
+            
+            <!-- NEW: Icon Upload Section -->
+            <div class="form-group">
+                <label class="form-label">أيقونة المقرر (اختياري)</label>
+                <div class="icon-upload-wrapper">
+                    <input type="file" id="course-icon-upload" accept="image/png" style="display: none;">
+                    <button type="button" class="btn-upload-icon" onclick="document.getElementById('course-icon-upload').click()">
+                        <i class="fa-solid fa-image"></i> رفع صورة (PNG)
+                    </button>
+                    <div id="icon-preview">
+                        <img id="icon-preview-img" src="" alt="Preview">
+                    </div>
+                    <span id="upload-hint" style="font-size: 0.75rem; color: var(--text-secondary);">لم يتم اختيار صورة</span>
+                </div>
+            </div>
+
             <div class="modal-actions">
                 <button class="btn-delete" id="btn-delete-course" style="display:none;" onclick="deleteCurrentCourse()">حذف المقرر</button>
                 <div style="flex-grow:1"></div>
@@ -415,10 +478,15 @@
         ];
 
         let currentCourseId = null;
+        let currentIconBase64 = null; // Temporary storage for uploaded icon
 
         // === LOCAL STORAGE MANAGEMENT ===
         function saveToLocalStorage() {
-            localStorage.setItem('allCourses', JSON.stringify(allCourses));
+            try {
+                localStorage.setItem('allCourses', JSON.stringify(allCourses));
+            } catch (e) {
+                alert('تنبيه: مساحة التخزين ممتلئة. حاول حذف بعض المواد أو الصور الكبيرة.');
+            }
         }
 
         function loadFromLocalStorage() {
@@ -450,6 +518,7 @@
             loadThemeFromLocalStorage(); // Load theme on page load
             loadFromLocalStorage(); // Load courses from localStorage
             renderGrid();
+            setupImageUploadListener();
         }
 
         // === RENDERING ===
@@ -460,19 +529,27 @@
             allCourses.forEach(course => {
                 const card = document.createElement('div');
                 card.className = 'material-card';
-                // التمييز البسيط (اختياري) بين الأصلي والمضاف يمكن حذفه
-                // card.classList.add('user-card'); 
                 
                 card.onclick = (e) => { 
                     if(!e.target.closest('.card-actions')) openDetail(course.id); 
                 };
+
+                // Check if icon is a custom image (Base64) or FontAwesome class
+                let iconHTML = '';
+                if (course.icon && course.icon.startsWith('data:image')) {
+                    iconHTML = `<img src="${course.icon}" class="custom-icon-img" alt="${course.title}">`;
+                } else {
+                    iconHTML = `<i class="fa-solid ${course.icon}"></i>`;
+                }
 
                 card.innerHTML = `
                     <div class="card-actions">
                         <button class="action-btn" onclick="openEditCourseById('${course.id}')" title="تعديل"><i class="fa-solid fa-pen"></i></button>
                         <button class="action-btn delete" onclick="deleteCourseById('${course.id}')" title="حذف"><i class="fa-solid fa-trash"></i></button>
                     </div>
-                    <div class="material-icon"><i class="fa-solid ${course.icon}"></i></div>
+                    <div class="material-icon">
+                        ${iconHTML}
+                    </div>
                     <div class="material-title">${course.title}</div>
                     <div class="material-desc">${course.doc}</div>
                 `;
@@ -488,7 +565,18 @@
             // تعبئة الهيدر
             document.getElementById('detail-title').innerText = course.title;
             document.getElementById('detail-doc').innerText = course.doc;
-            document.getElementById('detail-icon').className = `fa-solid ${course.icon}`;
+            
+            // Handle Detail View Icon (Image vs FontAwesome)
+            const iconContainer = document.getElementById('detail-icon-container');
+            iconContainer.innerHTML = ''; // Clear existing
+
+            if (course.icon && course.icon.startsWith('data:image')) {
+                iconContainer.innerHTML = `<img src="${course.icon}" class="detail-custom-img">`;
+                document.querySelector('.detail-icon').style.border = 'none'; // Remove border for image
+            } else {
+                iconContainer.innerHTML = `<i id="detail-icon" class="fa-solid ${course.icon}"></i>`;
+                document.querySelector('.detail-icon').style.border = '4px solid var(--accent)';
+            }
 
             // توليد الأقسام
             const container = document.getElementById('sections-container');
@@ -559,6 +647,35 @@
             return 'fa-book';
         }
 
+        // === IMAGE UPLOAD HANDLING ===
+        function setupImageUploadListener() {
+            const input = document.getElementById('course-icon-upload');
+            const preview = document.getElementById('icon-preview');
+            const previewImg = document.getElementById('icon-preview-img');
+            const hint = document.getElementById('upload-hint');
+
+            input.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.type !== "image/png") {
+                        alert('يرجى اختيار ملف بصيغة PNG فقط');
+                        input.value = ''; // Reset
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        currentIconBase64 = event.target.result;
+                        // Show preview
+                        previewImg.src = currentIconBase64;
+                        preview.style.display = 'block';
+                        hint.innerText = 'تم اختيار صورة';
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+
         // === SEARCH ===
         document.getElementById('searchInput').addEventListener('input', function(e) {
             const term = e.target.value.toLowerCase();
@@ -580,10 +697,19 @@
         // 1. Course Modal (Add/Edit)
         function openCourseModal() {
             currentCourseId = null;
+            currentIconBase64 = null; // Reset upload state
+            
+            // Reset UI inputs
             document.getElementById('course-modal-title').innerText = 'إضافة مقرر جديد';
             document.getElementById('course-name').value = '';
             document.getElementById('course-doc').value = '';
             document.getElementById('btn-delete-course').style.display = 'none';
+            
+            // Reset Icon Upload UI
+            document.getElementById('course-icon-upload').value = '';
+            document.getElementById('icon-preview').style.display = 'none';
+            document.getElementById('upload-hint').innerText = 'لم يتم اختيار صورة';
+            
             courseModal.style.display = 'flex';
         }
 
@@ -593,10 +719,29 @@
             if(!course) return;
 
             currentCourseId = id;
+            currentIconBase64 = null; // Reset upload state (no new image selected yet)
+
             document.getElementById('course-modal-title').innerText = 'تعديل بيانات المقرر';
             document.getElementById('course-name').value = course.title;
             document.getElementById('course-doc').value = course.doc;
             document.getElementById('btn-delete-course').style.display = 'block';
+
+            // Check if existing course has a custom image and show it in preview
+            const preview = document.getElementById('icon-preview');
+            const previewImg = document.getElementById('icon-preview-img');
+            const hint = document.getElementById('upload-hint');
+
+            if (course.icon && course.icon.startsWith('data:image')) {
+                // Keep existing image reference in memory until new one is selected
+                // We don't set currentIconBase64 here because we only want to update it IF user uploads new one
+                previewImg.src = course.icon;
+                preview.style.display = 'block';
+                hint.innerText = 'الصورة الحالية (اضغط رفع لتغييرها)';
+            } else {
+                preview.style.display = 'none';
+                hint.innerText = 'لم يتم اختيار صورة';
+            }
+
             courseModal.style.display = 'flex';
         }
 
@@ -618,17 +763,27 @@
             }
 
             if (currentCourseId) {
+                // Edit Mode
                 const course = allCourses.find(c => c.id === currentCourseId);
                 if (course) {
                     course.title = courseName;
                     course.doc = courseDoc;
+                    
+                    // Only update icon if a new image was uploaded
+                    if (currentIconBase64) {
+                        course.icon = currentIconBase64;
+                    }
                 }
             } else {
+                // Add Mode
+                // Determine icon: use uploaded base64 OR auto-detect based on name
+                const iconToUse = currentIconBase64 || getIcon(courseName);
+
                 const newCourse = {
                     id: `course-${Date.now()}`,
                     title: courseName,
                     doc: courseDoc,
-                    icon: 'fa-book',
+                    icon: iconToUse,
                     sections: []
                 };
                 allCourses.push(newCourse);

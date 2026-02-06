@@ -796,7 +796,8 @@
                 <div className={`min-h-screen flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'dark-mode' : ''}`}>
                     {/* Header */}
                     <header>
-                        <div className="max-w-6xl mx-auto px-4 flex justify-between items-center">
+                        {/* Conditionally center header based on view if needed, but keeping standard for now */}
+                        <div className={`${view === 'detail' ? 'max-w-full px-4 md:px-8' : 'max-w-6xl'} mx-auto flex justify-between items-center`}>
                             <div className="flex items-center gap-3 text-xl font-black text-[var(--primary-dark)] cursor-pointer" onClick={showHome}>
                                 <i className="fa-solid fa-network-wired text-[var(--accent)]"></i> CCE Hub
                             </div>
@@ -819,7 +820,9 @@
                         </div>
                     </header>
 
-                    <main className="max-w-6xl mx-auto px-4 py-8 flex-1 min-h-[70vh]">
+                    {/* THE CRITICAL CHANGE IS HERE IN THE MAIN TAG */}
+                    {/* If 'detail', use 'w-full' (full width). If 'home', keep 'max-w-6xl' (centered). */}
+                    <main className={`${view === 'detail' ? 'w-full px-4 md:px-8' : 'max-w-6xl'} mx-auto py-8 flex-1 min-h-[70vh]`}>
                         {/* Home View */}
                         {view === 'home' && (
                             <div>
@@ -883,12 +886,13 @@
 
                         {/* Detail View */}
                         {view === 'detail' && currentCourse && (
-                            <div>
+                            <div className="w-full">
                                 <button className="bg-[var(--bg-card)] border border-[var(--border-color)] text-[var(--text-secondary)] px-4 py-2 rounded-lg cursor-pointer font-semibold flex items-center gap-2 mb-6 hover:bg-[var(--primary)] hover:text-white hover:border-[var(--primary)] transition-all" onClick={showHome}>
                                     <i className="fa-solid fa-arrow-right"></i> عودة للقائمة
                                 </button>
                                 
-                                <div className="bg-[var(--bg-card)] p-8 rounded-2xl shadow-sm text-center border border-[var(--border-color)] mb-8">
+                                {/* Making the header card also slightly wider or centered if preferred, but keeping it centered is usually better for aesthetics */}
+                                <div className="max-w-4xl mx-auto bg-[var(--bg-card)] p-8 rounded-2xl shadow-sm text-center border border-[var(--border-color)] mb-8">
                                     <div className="w-20 h-20 bg-[var(--bg-body)] rounded-full flex items-center justify-center text-4xl text-[var(--accent)] mx-auto mb-4 border-4 border-[var(--accent)] overflow-hidden">
                                         {currentCourse.icon.startsWith('data:image') ? (
                                             <img src={currentCourse.icon} alt={currentCourse.title} className="w-full h-full object-cover" />
@@ -909,7 +913,8 @@
                                     </div>
                                 </div>
 
-                                <div className="max-w-3xl mx-auto">
+                                {/* This container now inherits w-full from main, so it fills the screen */}
+                                <div className="w-full">
                                     {currentCourse.sections.length === 0 ? (
                                         <div className="text-center text-[var(--text-secondary)] py-8">لا توجد أقسام أو روابط مضافة. اضغط "إضافة رابط".</div>
                                     ) : (

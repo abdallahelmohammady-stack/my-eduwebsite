@@ -455,6 +455,9 @@
             const [editingSectionIndex, setEditingSectionIndex] = useState(null)
             const [editingLinkIndex, setEditingLinkIndex] = useState(null)
 
+            // NEW: State to track if we are adding to an existing section or creating a new one
+            const [targetSectionIndex, setTargetSectionIndex] = useState(null)
+
             // Form state
             const [courseName, setCourseName] = useState('')
             const [courseDoc, setCourseDoc] = useState('')
@@ -481,7 +484,6 @@
 
             useEffect(() => {
                 localStorage.setItem('theme', theme)
-                // Apply class to body
                 if(theme === 'dark') {
                     document.body.classList.add('dark-mode')
                 } else {
@@ -574,12 +576,15 @@
                 setView('home')
             }
 
-            const openLinkModal = () => {
+            // Modified openLinkModal: accepts optional index for adding to existing section
+            const openLinkModal = (sectionIndex = null) => {
+                setTargetSectionIndex(sectionIndex) // If null, create new section. If number, add to this section.
                 setLinkName('')
                 setLinkUrl('')
                 setLinkModalOpen(true)
             }
 
+            // Modified saveLinkData: Handles both new sections and adding to existing sections
             const saveLinkData = () => {
                 if (!linkName.trim() || !linkUrl.trim()) {
                     alert('يرجى ملء البيانات')
@@ -588,16 +593,27 @@
 
                 setAllCourses(prev => prev.map(course => {
                     if (course.id === currentCourseId) {
-                        return {
-                            ...course,
-                            sections: [
-                                ...course.sections,
-                                {
-                                    name: `قسم جديد ${course.sections.length + 1}`,
-                                    badge: 'مضاف',
-                                    links: [{ name: linkName.trim(), url: linkUrl.trim() }]
-                                }
-                            ]
+                        if (targetSectionIndex !== null) {
+                            // Add to existing section
+                            const newSections = [...course.sections]
+                            newSections[targetSectionIndex].links.push({
+                                name: linkName.trim(),
+                                url: linkUrl.trim()
+                            })
+                            return { ...course, sections: newSections }
+                        } else {
+                            // Create new section (Original behavior)
+                            return {
+                                ...course,
+                                sections: [
+                                    ...course.sections,
+                                    {
+                                        name: `قسم جديد ${course.sections.length + 1}`,
+                                        badge: 'مضاف',
+                                        links: [{ name: linkName.trim(), url: linkUrl.trim() }]
+                                    }
+                                ]
+                            }
                         }
                     }
                     return course
@@ -796,7 +812,6 @@
                 <div className={`min-h-screen flex flex-col transition-colors duration-300 ${theme === 'dark' ? 'dark-mode' : ''}`}>
                     {/* Header */}
                     <header>
-                        {/* Conditionally center header based on view if needed, but keeping standard for now */}
                         <div className={`${view === 'detail' ? 'max-w-full px-4 md:px-8' : 'max-w-6xl'} mx-auto flex justify-between items-center`}>
                             <div className="flex items-center gap-3 text-xl font-black text-[var(--primary-dark)] cursor-pointer" onClick={showHome}>
                                 <i className="fa-solid fa-network-wired text-[var(--accent)]"></i> CCE Hub
@@ -820,8 +835,6 @@
                         </div>
                     </header>
 
-                    {/* THE CRITICAL CHANGE IS HERE IN THE MAIN TAG */}
-                    {/* If 'detail', use 'w-full' (full width). If 'home', keep 'max-w-6xl' (centered). */}
                     <main className={`${view === 'detail' ? 'w-full px-4 md:px-8' : 'max-w-6xl'} mx-auto py-8 flex-1 min-h-[70vh]`}>
                         {/* Home View */}
                         {view === 'home' && (
@@ -891,7 +904,6 @@
                                     <i className="fa-solid fa-arrow-right"></i> عودة للقائمة
                                 </button>
                                 
-                                {/* Making the header card also slightly wider or centered if preferred, but keeping it centered is usually better for aesthetics */}
                                 <div className="max-w-4xl mx-auto bg-[var(--bg-card)] p-8 rounded-2xl shadow-sm text-center border border-[var(--border-color)] mb-8">
                                     <div className="w-20 h-20 bg-[var(--bg-body)] rounded-full flex items-center justify-center text-4xl text-[var(--accent)] mx-auto mb-4 border-4 border-[var(--accent)] overflow-hidden">
                                         {currentCourse.icon.startsWith('data:image') ? (
@@ -907,16 +919,16 @@
                                         <button className="bg-[var(--text-secondary)] text-white border-none px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={() => openEditCourseModal(currentCourse.id)}>
                                             <i className="fa-solid fa-pen"></i> تعديل بيانات المقرر
                                         </button>
-                                        <button className="bg-[var(--accent)] text-white border-none px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={openLinkModal}>
-                                            <i className="fa-solid fa-plus"></i> إضافة رابط / قسم
+                                        {/* Passing null creates a new section */}
+                                        <button className="bg-[var(--accent)] text-white border-none px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={() => openLinkModal(null)}>
+                                            <i className="fa-solid fa-plus"></i> إضافة رابط / قسم جديد
                                         </button>
                                     </div>
                                 </div>
 
-                                {/* This container now inherits w-full from main, so it fills the screen */}
                                 <div className="w-full">
                                     {currentCourse.sections.length === 0 ? (
-                                        <div className="text-center text-[var(--text-secondary)] py-8">لا توجد أقسام أو روابط مضافة. اضغط "إضافة رابط".</div>
+                                        <div className="text-center text-[var(--text-secondary)] py-8">لا توجد أقسام أو روابط مضافة. اضغط "إضافة رابط / قسم جديد".</div>
                                     ) : (
                                         currentCourse.sections.map((section, sIndex) => (
                                             <div
@@ -936,6 +948,14 @@
                                                         {section.badge && <span className="text-[0.7rem] bg-[var(--accent)] text-white px-2 py-0.5 rounded">{section.badge}</span>}
                                                     </div>
                                                     <div className="flex gap-2">
+                                                        {/* New Button: Add link to THIS specific section */}
+                                                        <button 
+                                                            className="action-btn" 
+                                                            onClick={() => openLinkModal(sIndex)} 
+                                                            title="إضافة رابط داخل هذه الخانة"
+                                                        >
+                                                            <i className="fa-solid fa-plus"></i>
+                                                        </button>
                                                         <button className="action-btn" onClick={() => editSectionName(currentCourse.id, sIndex)} title="تعديل اسم الخانة"><i className="fa-solid fa-pen"></i></button>
                                                         <button className="action-btn delete" onClick={() => deleteSection(currentCourse.id, sIndex)} title="حذف الخانة"><i className="fa-solid fa-trash"></i></button>
                                                     </div>
@@ -1059,10 +1079,12 @@
                     {linkModalOpen && (
                         <div className="modal-backdrop" role="dialog" onClick={() => setLinkModalOpen(false)}>
                             <div onClick={e => e.stopPropagation()}>
-                                <h2 className="text-2xl font-bold text-[var(--primary-dark)] mb-6 text-center">إضافة رابط للمقرر</h2>
+                                <h2 className="text-2xl font-bold text-[var(--primary-dark)] mb-6 text-center">
+                                    {targetSectionIndex !== null ? 'إضافة رابط للخانة' : 'إضافة خانة جديدة'}
+                                </h2>
                                 
                                 <div className="mb-6">
-                                    <label className="block mb-2 font-bold text-[var(--text-primary)]">اسم الرابط / القسم</label>
+                                    <label className="block mb-2 font-bold text-[var(--text-primary)]">اسم الرابط</label>
                                     <input
                                         className="form-input"
                                         value={linkName}

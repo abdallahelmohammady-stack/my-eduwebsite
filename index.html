@@ -21,7 +21,7 @@
     <!-- Google Fonts (Cairo) -->
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
 
-    <!-- Custom Styles from Original Component -->
+    <!-- Custom Styles -->
     <style>
         :root {
             --bg-body: #f1f5f9;
@@ -63,6 +63,7 @@
             transition: background-color 0.3s, color 0.3s;
             background-image: radial-gradient(var(--text-secondary) 1px, transparent 1px);
             background-size: 30px 30px;
+            font-size: 18px; /* تكبير الخط */
         }
 
         /* Header Styles */
@@ -116,7 +117,44 @@
             background-color: var(--bg-hover);
         }
 
-        /* Modal Styles (Replaces Shadcn Dialog) */
+        /* Note Cards Specific Styles */
+        .note-card {
+            background: #fffbeb; /* Amber 50 */
+            border: 1px solid #fcd34d;
+            color: #78350f;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 150px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            position: relative;
+        }
+        
+        .dark-mode .note-card {
+            background: #451a03; /* Dark amber bg */
+            border-color: #78350f;
+            color: #fcd34d;
+        }
+
+        .note-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        .note-date {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: auto;
+            padding-top: 1rem;
+            text-align: left;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Modal Styles */
         [role="dialog"] {
             width: 100%;
             max-width: 700px !important;
@@ -185,7 +223,7 @@
             box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.15) !important;
         }
 
-        /* Specific Classes from original CSS */
+        /* Specific Classes */
         .search-input {
             width: 100%;
             padding: 0.6rem 2.5rem 0.6rem 1rem;
@@ -316,6 +354,25 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(79, 70, 229, 0.4);
         }
+
+        .btn-add-note {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .btn-add-note:hover {
+            background: #d97706;
+            box-shadow: 0 4px 10px rgba(245, 158, 11, 0.3);
+        }
     </style>
 </head>
 <body>
@@ -338,23 +395,9 @@
                     ]},
                     { name: 'دكتور عباس', badge: 'Course', links: [
                         { name: 'Playlist شاملة', url: 'https://youtube.com/playlist?list=PL1YWN9bMt3OBst07eIJhwj4U256qipeTz' }
-                    ]},
-                    { name: 'دكتور مصطفى العجمي', badge: 'D.E', links: [
-                        { name: 'شرح D.E', url: 'https://youtube.com/playlist?list=PLHAKO34XewLnaahap99m414ntoRGE0lxm' }
-                    ]},
-                    { name: 'دكتور أحمد عبد الله', badge: 'S.V', links: [
-                        { name: 'شرح S.V', url: 'https://youtube.com/playlist?list=PLIAuB242F-D6W0jxwDN_OAhXq7H9BhCiL' }
-                    ]},
-                    { name: 'دكتور أيمن جمعة', badge: 'General', links: [
-                        { name: 'Playlist شاملة', url: 'https://youtube.com/playlist?list=PLtOK4NrEMJsli2gWGs18mdKoYov5MsO_f' }
-                    ]},
-                    { name: 'دكتور محمد سرور', badge: 'D.E', links: [
-                        { name: 'شرح D.E', url: 'https://youtube.com/playlist?list=PLfMrPi8g-0mO7SZ0_sCL0AetECNZY6jme' }
-                    ]},
-                    { name: 'دكتور سمير شمس الدين', badge: 'S.V', links: [
-                        { name: 'شرح S.V', url: 'https://youtube.com/playlist?list=PLfMrPi8g-0mMG-QqK_Xw1o2L1EvyFvRtm' }
                     ]}
-                ]
+                ],
+                notes: [] // Initialize with empty array
             },
             {
                 id: 'logic',
@@ -363,11 +406,10 @@
                 icon: 'fa-microchip',
                 sections: [
                     { name: 'د/ أحمد صالح 👑', badge: 'King', links: [
-                        { name: 'Playlist 1', url: 'https://youtube.com/playlist?list=PL58RkuffQs13k6P5uItCg8nA0Hi3oU2TY' },
-                        { name: 'Playlist 2', url: 'https://youtube.com/playlist?list=PLAP4TMOC6CLmThh4UyClRFk0UK5eH8msu' },
-                        { name: 'Playlist 3', url: 'https://youtube.com/playlist?list=PLIw7pvqK09TvueRHzvgqFl4l-_MhoE3ep' }
+                        { name: 'Playlist 1', url: 'https://youtube.com/playlist?list=PL58RkuffQs13k6P5uItCg8nA0Hi3oU2TY' }
                     ]}
-                ]
+                ],
+                notes: []
             },
             {
                 id: 'circuits',
@@ -377,15 +419,9 @@
                 sections: [
                     { name: 'د ياسر البطاوي', badge: 'YouTube', links: [
                         { name: 'Playlist شاملة', url: 'https://youtube.com/playlist?list=PLka1IWY71Cp_iANs3ir4JjB0bSg8lXTgH' }
-                    ]},
-                    { name: 'د. محمد إسماعيل', badge: 'AC/DC', links: [
-                        { name: 'Ac/Dc 1', url: 'https://youtube.com/playlist?list=PLD30uL4tqplHfK5qBTtU01IARHkBQNiLL' },
-                        { name: 'Ac/Dc 2', url: 'https://youtube.com/playlist?list=PLD30uL4tqplG81NNhEGDLiV4YMb3xYBEH' }
-                    ]},
-                    { name: 'StudyU', badge: 'Channel', links: [
-                        { name: 'شرح الدوائر', url: 'https://youtube.com/playlist?list=PLkzaiPofN5b1eqFW7wYH8DWx0fAnl3vn4' }
                     ]}
-                ]
+                ],
+                notes: []
             },
             {
                 id: 'electronics',
@@ -396,7 +432,8 @@
                     { name: 'د/ نيهال', badge: 'Prof', links: [
                         { name: 'Playlist شاملة', url: 'https://youtube.com/playlist?list=PL3MBZqVIYGpnKfbDRv-WsSqkK_B67TbeQ' }
                     ]}
-                ]
+                ],
+                notes: []
             },
             {
                 id: 'prob',
@@ -407,7 +444,8 @@
                     { name: 'ملفات الدكتور', badge: 'Drive', links: [
                         { name: 'فتح المجلد', url: 'https://drive.google.com/drive/folders/1pKkvp1MY38gWNj8Xumpf5o6uvp6wk2M_' }
                     ]}
-                ]
+                ],
+                notes: []
             },
             {
                 id: 'exams',
@@ -418,7 +456,8 @@
                     { name: 'الامتحانات السابقة', badge: 'Exam', links: [
                         { name: 'فتح المستودع', url: 'https://drive.google.com/folderview?id=1vr4h0p0mhFlJ4p12Vxm1urYIkMAKAG2q' }
                     ]}
-                ]
+                ],
+                notes: []
             }
         ];
 
@@ -429,7 +468,9 @@
                 if (storedCourses) {
                     try {
                         const parsed = JSON.parse(storedCourses)
-                        return parsed.length > 0 ? parsed : defaultCourses
+                        // Ensure notes is an array for backward compatibility
+                        const sanitized = parsed.map(c => ({...c, notes: Array.isArray(c.notes) ? c.notes : []}))
+                        return sanitized.length > 0 ? sanitized : defaultCourses
                     } catch (e) {
                         return defaultCourses
                     }
@@ -447,6 +488,11 @@
                 return 'light'
             })
 
+            // Note Modal State
+            const [noteModalOpen, setNoteModalOpen] = useState(false)
+            const [editingNoteId, setEditingNoteId] = useState(null)
+            const [tempNoteContent, setTempNoteContent] = useState('')
+
             // Modals state
             const [courseModalOpen, setCourseModalOpen] = useState(false)
             const [linkModalOpen, setLinkModalOpen] = useState(false)
@@ -454,8 +500,6 @@
             const [editingCourseId, setEditingCourseId] = useState(null)
             const [editingSectionIndex, setEditingSectionIndex] = useState(null)
             const [editingLinkIndex, setEditingLinkIndex] = useState(null)
-
-            // NEW: State to track if we are adding to an existing section or creating a new one
             const [targetSectionIndex, setTargetSectionIndex] = useState(null)
 
             // Form state
@@ -490,6 +534,61 @@
                     document.body.classList.remove('dark-mode')
                 }
             }, [theme])
+
+            // Note Handlers
+            const openAddNoteModal = () => {
+                setEditingNoteId(null)
+                setTempNoteContent('')
+                setNoteModalOpen(true)
+            }
+
+            const openEditNoteModal = (note) => {
+                setEditingNoteId(note.id)
+                setTempNoteContent(note.content)
+                setNoteModalOpen(true)
+            }
+
+            const saveNote = () => {
+                if (!tempNoteContent.trim()) return
+
+                setAllCourses(prev => prev.map(course => {
+                    if (course.id === currentCourseId) {
+                        let newNotes = [...course.notes]
+                        if (editingNoteId) {
+                            // Update existing
+                            newNotes = newNotes.map(n => n.id === editingNoteId 
+                                ? { ...n, content: tempNoteContent.trim(), updatedAt: new Date().toISOString() } 
+                                : n)
+                        } else {
+                            // Add new
+                            newNotes.push({
+                                id: Date.now(),
+                                content: tempNoteContent.trim(),
+                                createdAt: new Date().toISOString()
+                            })
+                        }
+                        return { ...course, notes: newNotes }
+                    }
+                    return course
+                }))
+                setNoteModalOpen(false)
+            }
+
+            const deleteNote = (noteId) => {
+                if(confirm('هل أنت متأكد من حذف هذه الملاحظة؟')) {
+                    setAllCourses(prev => prev.map(course => {
+                        if (course.id === currentCourseId) {
+                            return { ...course, notes: course.notes.filter(n => n.id !== noteId) }
+                        }
+                        return course
+                    }))
+                }
+            }
+
+            const formatDate = (isoString) => {
+                const date = new Date(isoString)
+                return date.toLocaleDateString('ar-EG', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' })
+            }
 
             // Helpers
             const getIcon = (name) => {
@@ -550,7 +649,8 @@
                         title: courseName.trim(),
                         doc: courseDoc.trim(),
                         icon: currentIconBase64 || getIcon(courseName),
-                        sections: []
+                        sections: [],
+                        notes: []
                     }
                     setAllCourses(prev => [...prev, newCourse])
                 }
@@ -576,15 +676,13 @@
                 setView('home')
             }
 
-            // Modified openLinkModal: accepts optional index for adding to existing section
             const openLinkModal = (sectionIndex = null) => {
-                setTargetSectionIndex(sectionIndex) // If null, create new section. If number, add to this section.
+                setTargetSectionIndex(sectionIndex)
                 setLinkName('')
                 setLinkUrl('')
                 setLinkModalOpen(true)
             }
 
-            // Modified saveLinkData: Handles both new sections and adding to existing sections
             const saveLinkData = () => {
                 if (!linkName.trim() || !linkUrl.trim()) {
                     alert('يرجى ملء البيانات')
@@ -594,7 +692,6 @@
                 setAllCourses(prev => prev.map(course => {
                     if (course.id === currentCourseId) {
                         if (targetSectionIndex !== null) {
-                            // Add to existing section
                             const newSections = [...course.sections]
                             newSections[targetSectionIndex].links.push({
                                 name: linkName.trim(),
@@ -602,7 +699,6 @@
                             })
                             return { ...course, sections: newSections }
                         } else {
-                            // Create new section (Original behavior)
                             return {
                                 ...course,
                                 sections: [
@@ -699,7 +795,7 @@
                 }
             }
 
-            // Drag & Drop Handlers
+            // Drag & Drop Handlers (Kept as is)
             const handleLinkDragStart = (e, sectionIndex, linkIndex) => {
                 setDraggedLinkInfo({ sectionIndex, linkIndex })
                 e.dataTransfer.effectAllowed = 'move'
@@ -841,7 +937,7 @@
                             <div>
                                 <div className="text-center mb-8">
                                     <h1 className="text-3xl font-bold mb-2 text-[var(--text-primary)]">مكتبة قسم هندسة الإتصالات والحاسبات</h1>
-                                    <p className="text-[var(--text-secondary)] text-sm">النظام الموحد لإدارة المواد (يمكنك التعديل والحذف وإعادة الترتيب على أي مادة)</p>
+                                    <p className="text-[var(--text-secondary)] text-sm">النظام الموحد لإدارة المواد (يمكنك التعديل والحذف وإضافة الملاحظات)</p>
                                 </div>
 
                                 <div className="text-center">
@@ -919,11 +1015,44 @@
                                         <button className="bg-[var(--text-secondary)] text-white border-none px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={() => openEditCourseModal(currentCourse.id)}>
                                             <i className="fa-solid fa-pen"></i> تعديل بيانات المقرر
                                         </button>
-                                        {/* Passing null creates a new section */}
                                         <button className="bg-[var(--accent)] text-white border-none px-4 py-2 rounded-lg cursor-pointer flex items-center gap-2 hover:opacity-90" onClick={() => openLinkModal(null)}>
                                             <i className="fa-solid fa-plus"></i> إضافة رابط / قسم جديد
                                         </button>
                                     </div>
+                                </div>
+
+                                {/* Notes Board Section (The Corner) */}
+                                <div className="max-w-5xl mx-auto mb-10">
+                                    <div className="flex justify-between items-center mb-4 px-2">
+                                        <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
+                                            <i className="fa-solid fa-clipboard-list text-[#f59e0b]"></i>
+                                            سجل الملاحظات
+                                        </h3>
+                                        <button className="btn-add-note" onClick={openAddNoteModal}>
+                                            <i className="fa-solid fa-plus"></i> ملاحظة جديدة
+                                        </button>
+                                    </div>
+                                    
+                                    {currentCourse.notes && currentCourse.notes.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                            {currentCourse.notes.map((note) => (
+                                                <div key={note.id} className="note-card">
+                                                    <div className="text-lg font-medium whitespace-pre-wrap break-words">{note.content}</div>
+                                                    <div className="note-date">
+                                                        <span>{formatDate(note.createdAt)}</span>
+                                                        <div className="flex gap-2">
+                                                            <button onClick={() => openEditNoteModal(note)} className="hover:text-[var(--primary)]"><i className="fa-solid fa-pen"></i></button>
+                                                            <button onClick={() => deleteNote(note.id)} className="hover:text-[var(--danger)]"><i className="fa-solid fa-trash"></i></button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-8 border-2 border-dashed border-[var(--border-color)] rounded-xl text-[var(--text-secondary)] bg-[var(--bg-card)]">
+                                            لا توجد ملاحظات بعد. اضغط "ملاحظة جديدة" لتسجيل أفكارك.
+                                        </div>
+                                    )}
                                 </div>
 
                                 <div className="w-full">
@@ -948,14 +1077,7 @@
                                                         {section.badge && <span className="text-[0.7rem] bg-[var(--accent)] text-white px-2 py-0.5 rounded">{section.badge}</span>}
                                                     </div>
                                                     <div className="flex gap-2">
-                                                        {/* New Button: Add link to THIS specific section */}
-                                                        <button 
-                                                            className="action-btn" 
-                                                            onClick={() => openLinkModal(sIndex)} 
-                                                            title="إضافة رابط داخل هذه الخانة"
-                                                        >
-                                                            <i className="fa-solid fa-plus"></i>
-                                                        </button>
+                                                        <button className="action-btn" onClick={() => openLinkModal(sIndex)} title="إضافة رابط داخل هذه الخانة"><i className="fa-solid fa-plus"></i></button>
                                                         <button className="action-btn" onClick={() => editSectionName(currentCourse.id, sIndex)} title="تعديل اسم الخانة"><i className="fa-solid fa-pen"></i></button>
                                                         <button className="action-btn delete" onClick={() => deleteSection(currentCourse.id, sIndex)} title="حذف الخانة"><i className="fa-solid fa-trash"></i></button>
                                                     </div>
@@ -995,7 +1117,7 @@
                         <p>© 2026 CCE Hub. نظام إدارة المحتوى الموحد.</p>
                     </footer>
 
-                    {/* Modals (Dialogs) */}
+                    {/* Modals */}
                     {courseModalOpen && (
                         <div className="modal-backdrop" role="dialog" onClick={() => setCourseModalOpen(false)}>
                             <div onClick={e => e.stopPropagation()}>
@@ -1071,6 +1193,30 @@
                                     <div className="flex-grow"></div>
                                     <button className="btn-cancel" onClick={() => setCourseModalOpen(false)}>إلغاء</button>
                                     <button className="btn-save" onClick={saveCourseData}>حفظ</button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {noteModalOpen && (
+                        <div className="modal-backdrop" role="dialog" onClick={() => setNoteModalOpen(false)}>
+                            <div onClick={e => e.stopPropagation()} className="max-w-md !important">
+                                <h2 className="text-2xl font-bold text-[var(--primary-dark)] mb-6 text-center">
+                                    {editingNoteId ? 'تعديل الملاحظة' : 'إضافة ملاحظة جديدة'}
+                                </h2>
+                                
+                                <div className="mb-6">
+                                    <textarea
+                                        className="form-input min-h-[150px]"
+                                        value={tempNoteContent}
+                                        onChange={(e) => setTempNoteContent(e.target.value)}
+                                        placeholder="اكتب ملاحظاتك هنا..."
+                                    ></textarea>
+                                </div>
+
+                                <div className="mt-8 pt-4 border-t border-[var(--border-color)] flex justify-end gap-3">
+                                    <button className="btn-cancel" onClick={() => setNoteModalOpen(false)}>إلغاء</button>
+                                    <button className="btn-save" onClick={saveNote}>حفظ</button>
                                 </div>
                             </div>
                         </div>

@@ -795,7 +795,7 @@
                 }
             }
 
-            // Drag & Drop Handlers (Kept as is)
+            // Drag & Drop Handlers
             const handleLinkDragStart = (e, sectionIndex, linkIndex) => {
                 setDraggedLinkInfo({ sectionIndex, linkIndex })
                 e.dataTransfer.effectAllowed = 'move'
@@ -1021,7 +1021,7 @@
                                     </div>
                                 </div>
 
-                                {/* Notes Board Section (The Corner) */}
+                                {/* Notes Board Section */}
                                 <div className="max-w-5xl mx-auto mb-10">
                                     <div className="flex justify-between items-center mb-4 px-2">
                                         <h3 className="text-xl font-bold text-[var(--text-primary)] flex items-center gap-2">
@@ -1099,7 +1099,19 @@
                                                             <div className="flex-grow overflow-hidden" onClick={() => window.open(link.url, '_blank')}>
                                                                 <span className="font-semibold text-sm truncate block">{link.name}</span>
                                                             </div>
-                                                            <i className="fa-solid fa-play text-[var(--primary)] text-xs opacity-0 hover:opacity-100 transition-opacity flex-shrink-0"></i>
+                                                            
+                                                            {/* NEW BUTTON: Open in New Tab */}
+                                                            <button 
+                                                                className="bg-transparent border-none text-[var(--text-secondary)] cursor-pointer ml-3 hover:text-[var(--accent)] transition-colors flex-shrink-0" 
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    window.open(link.url, '_blank');
+                                                                }} 
+                                                                title="فتح الرابط في نافذة جديدة"
+                                                            >
+                                                                <i className="fa-solid fa-up-right-from-square"></i>
+                                                            </button>
+                                                            
                                                             <button className="bg-transparent border-none text-[var(--text-secondary)] cursor-pointer ml-3 hover:text-[var(--primary)] transition-colors flex-shrink-0" onClick={() => openEditLinkModal(currentCourse.id, sIndex, lIndex)} title="تعديل الرابط"><i className="fa-solid fa-pen"></i></button>
                                                             <button className="bg-transparent border-none text-[var(--text-secondary)] cursor-pointer ml-3 hover:text-[var(--danger)] transition-colors flex-shrink-0" onClick={() => deleteLink(currentCourse.id, sIndex, lIndex)} title="حذف الرابط"><i className="fa-solid fa-trash"></i></button>
                                                         </li>
